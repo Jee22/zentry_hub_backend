@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Router {
+  routerId  String    @id @map("router_id") @db.Uuid
+  name      String
+  mac       String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  sensors Sensor[]
+
+  @@map("routers")
+}
+
+model Sensor {
+  sensorId  String    @id @map("sensor_id") @db.Uuid
+  name      String
+  mac       String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  router   Router   @relation(fields: [routerId], references: [routerId])
+  routerId String   @map("router_id") @db.Uuid
+  packets  Packet[]
+
+  @@map("sensors")
+}
+
+model Event {
+  eventId Int    @id @default(autoincrement())
+  name    String
+
+  packets Packet[]
+
+  @@map("events")
+}
+
+model Packet {
+  packetId  String    @id @map("packet_id") @db.Uuid
+  payload   String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  sensorId String @map("sensor_id") @db.Uuid
+  sensor   Sensor @relation(fields: [sensorId], references: [sensorId])
+  eventId  Int    @map("event_id") @db.Integer
+  event    Event  @relation(fields: [eventId], references: [eventId])
+
+  @@map("packets")
+}
